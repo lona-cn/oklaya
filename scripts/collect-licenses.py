@@ -11,9 +11,7 @@ def main() -> None:
     if len(sys.argv) != 2:
         raise SystemExit("usage: collect-licenses.py OUTPUT")
     metadata = json.loads(
-        subprocess.check_output(
-            ["cargo", "metadata", "--format-version", "1", "--locked"], text=True
-        )
+        subprocess.check_output(["cargo", "metadata", "--format-version", "1", "--locked"])
     )
     sections = [
         "Third-party Rust dependency notices",
