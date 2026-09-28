@@ -71,21 +71,6 @@ android {
     }
 }
 
-// ONNX Runtime is linked into liblaya_android.so but requires the NDK C++
-// runtime. Rust-only Android packaging does not add libc++_shared.so for us.
-val stageArm64CxxRuntime = tasks.register<Copy>("stageArm64CxxRuntime") {
-    val ndkHome = providers.environmentVariable("NDK_HOME").orNull
-        ?: error("NDK_HOME must point to the NDK used for the ARM64 Rust build")
-    val runtime = fileTree("$ndkHome/toolchains/llvm/prebuilt") {
-        include("*/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so")
-    }.singleFile
-    from(runtime)
-    into(layout.buildDirectory.dir("generated/arm64-cxx-jni/arm64-v8a"))
-}
-android.sourceSets.getByName("main").jniLibs.srcDir(layout.buildDirectory.dir("generated/arm64-cxx-jni"))
-tasks.matching { it.name.startsWith("mergeArm64") && it.name.endsWith("JniLibFolders") }
-    .configureEach { dependsOn(stageArm64CxxRuntime) }
-
 rust {
     rootDirRel = "../../../"
 }

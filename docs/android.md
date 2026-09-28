@@ -20,12 +20,13 @@ On Windows without Developer Mode, the `--debug` command may compile the Rust `.
 $jni = 'crates/laya-android/gen/android/app/src/main/jniLibs/arm64-v8a'
 New-Item -ItemType Directory -Force $jni | Out-Null
 Copy-Item 'target/aarch64-linux-android/debug/liblaya_android.so' "$jni/liblaya_android.so"
+Copy-Item "$env:NDK_HOME/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so" "$jni/libc++_shared.so"
 Push-Location 'crates/laya-android/gen/android'
 ./gradlew.bat :app:assembleArm64Debug -x :app:rustBuildArm64Debug --no-daemon
 Pop-Location
 ```
 
-Recompile and recopy the library after **any** native or bundled UI change; Gradle's `-x` switch intentionally skips that step. The standard Tauri build is preferable when symlinks are supported. Set `NDK_HOME` to the **same installed NDK** used for the Rust build: the Gradle project copies that NDK's `libc++_shared.so` into the APK because ONNX Runtime needs it at startup. The JDK must also be available to Gradle.
+Recompile and recopy the Rust library after **any** native or bundled UI change; Gradle's `-x` switch intentionally skips that step. The standard Tauri build is preferable when symlinks are supported: Tauri includes the NDK's `libc++_shared.so` required by ONNX Runtime automatically. The Windows fallback instead copies it from the **same installed NDK** specified by `NDK_HOME`. The JDK must also be available to Gradle.
 
 ## CI and GitHub Releases
 
