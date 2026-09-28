@@ -9,10 +9,10 @@ Install the Rust Android ARM64 target, Android SDK (platform 36), NDK, Java and 
 ```sh
 rustup target add aarch64-linux-android
 cd crates/laya-android
-cargo tauri android build --debug --target aarch64 --apk
+cargo tauri android build --debug --target aarch64 --split-per-abi --apk
 ```
 
-The **local debug** APK is `gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk` relative to that crate. Install with `adb install -r <apk-path>` on an ARM64 Android device (Android 7.0+, API 24+). It uses the Android **debug key**, which is not suitable for publishing. The command without `--debug` builds the release variant; without the signing environment below, its APK is unsigned and cannot be installed.
+The **local debug** APK is `gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk` relative to that crate. `--split-per-abi` selects the `arm64` APK variant; `--target aarch64` alone builds a `universal` APK at a different path. Install with `adb install -r <apk-path>` on an ARM64 Android device (Android 7.0+, API 24+). It uses the Android **debug key**, which is not suitable for publishing. The command without `--debug` builds the release variant; without the signing environment below, its APK is unsigned and cannot be installed.
 
 On Windows without Developer Mode, the `--debug` command may compile the Rust `.so` successfully but fail at its Gradle step because creating symlinks requires permission. Rather than weakening system policy, after it has compiled `target/aarch64-linux-android/debug/liblaya_android.so`, copy the library into the generated Android project and run Gradle without rebuilding Rust (PowerShell, from the repository root):
 

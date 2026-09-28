@@ -154,12 +154,12 @@ jobs:
           LAYA_ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
           LAYA_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           LAYA_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: cargo tauri android build --ci --target aarch64 --apk
+        run: cargo tauri android build --ci --target aarch64 --split-per-abi --apk
 
       - name: Build Android CI debug APK
         if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/v')
         working-directory: crates/laya-android
-        run: cargo tauri android build --ci --debug --target aarch64 --apk
+        run: cargo tauri android build --ci --debug --target aarch64 --split-per-abi --apk
 
       - name: Verify and stage Android APK
         run: |
