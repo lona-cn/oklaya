@@ -42,6 +42,12 @@ Both graphical interfaces detect the browser or desktop WebView's language on fi
 
 The administrator shows only in-memory request metadata (timestamp, status, latency, question count), never submitted state or instructions; history is capped at 100 entries and resets on service restart. On Windows, the desktop windows need WebView2; other platforms need their Tauri WebView dependencies. All services bind loopback by default and have no authentication: do not expose them publicly without access controls. API contract and curl example: [HTTP API](docs/http-api.md), [OpenAPI](docs/openapi.yaml). On Windows use `.exe` paths.
 
+## GitHub releases
+
+Push a version tag such as `v0.1.0` to run the [Windows x64 release workflow](.github/workflows/release.yml). It builds and tests all crates, verifies a separately published multilingual model against the pinned hashes, runs the model parity test, and publishes a ZIP of the four executables plus project license/notice files. `workflow_dispatch` runs the same checks and uploads a temporary build artifact without publishing a version release.
+
+Large model files are **not** in Git. The [pinned model Release](https://github.com/lona-cn/oklaya/releases/tag/models-1bc2622) holds separate `laya-model-{english,multilingual,typed-decisions}.zip` archives, each containing its model directory and Apache license/attribution. Verify their SHA256 checksums before use. These archives are not installed automatically by extracting the application ZIP: by default `laya` downloads and verifies the selected model into its per-user cache, or library callers can supply an extracted directory via `Laya::builder().model_path(...)`. The application release is CPU-ready; CUDA needs separately installed vendor components. The optional original Microsoft ONNX Runtime GPU wheel is mirrored with its own license and third-party notices, but NVIDIA's cuBLAS SDK archive is **not** republished because its distribution terms restrict standalone redistribution. See [Windows CUDA setup](docs/windows-cuda.md) for official downloads.
+
 ## CLI
 
 ```bash

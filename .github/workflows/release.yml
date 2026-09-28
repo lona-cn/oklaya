@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows-x64:
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Select Rust toolchain
+        run: |
+          rustup update stable
+          if ($LASTEXITCODE -ne 0) { throw 'Rust toolchain update failed' }
+          rustup default stable
+          if ($LASTEXITCODE -ne 0) { throw 'Rust toolchain selection failed' }
+
+      - name: Test and build Windows binaries
+        run: |
+          cargo test --workspace --locked
+          if ($LASTEXITCODE -ne 0) { throw 'Workspace tests failed' }
+          cargo build --workspace --release --locked
+          if ($LASTEXITCODE -ne 0) { throw 'Release build failed' }
+
+      - name: Verify released multilingual model and run inference parity
+        run: |
+          New-Item -ItemType Directory -Force .model-assets | Out-Null
+          gh release download models-1bc2622 --repo $env:GITHUB_REPOSITORY --pattern laya-model-multilingual.zip --dir .model-assets
+          if ($LASTEXITCODE -ne 0) { throw 'Model Release download failed' }
+          Expand-Archive .model-assets/laya-model-multilingual.zip -DestinationPath .model-assets/unpacked
+          $expected = @{
+            'model.onnx' = 'da6a0f87380597f679b12ce539e0a187e923fcffcf8dfc2f035728388dceacb0'
+            'rl_agent_config.json' = '25061739243b617ad88d1219ba6f8a9c86c5881ca28df024fa2d9b3b2fcc30c6'
+            'onnx_config.json' = '7eff4d0af9a8b22b977b690ab9e7d97ea2cda6c0a449e53502c06f7db2ae915f'
+            'tokenizer/tokenizer.json' = '609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f'
+            'tokenizer/tokenizer_config.json' = '6c6b2d8e3c84ce0e671c129cd6b374b235d6f9863042a5836358d00a89bbb5a1'
+          }
+          foreach ($relative in $expected.Keys) {
+            $file = Join-Path '.model-assets/unpacked/multilingual' $relative
+            if (-not (Test-Path $file)) { throw "Missing model file: $relative" }
+            if ((Get-FileHash $file -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected[$relative]) {
+              throw "Model checksum mismatch: $relative"
+            }
+          }
+          $env:LAYA_RUN_MODEL_TESTS = '1'
+          $env:LAYA_MODEL_DIR = (Resolve-Path .model-assets/unpacked/multilingual).Path
+          cargo test -p laya-inference --test reference --locked
+          if ($LASTEXITCODE -ne 0) { throw 'Released model parity test failed' }
+
+      - name: Package Windows applications
+        run: |
+          $directory = 'dist/oklaya-windows-x64'
+          New-Item -ItemType Directory -Force $directory | Out-Null
+          foreach ($name in @('laya', 'laya-inspect', 'laya-gui-server', 'laya-gui-client')) {
+            Copy-Item "target/release/$name.exe" $directory
+          }
+          Copy-Item README.md, README.zh-CN.md, LICENSE, NOTICE $directory
+          $archive = "oklaya-$env:GITHUB_REF_NAME-windows-x64.zip"
+          Compress-Archive -Path "$directory/*" -DestinationPath "dist/$archive" -CompressionLevel Optimal
+          $hash = (Get-FileHash "dist/$archive" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $archive" | Set-Content dist/SHA256SUMS.txt -Encoding ascii
+
+      - name: Keep manual build for inspection
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v7
+        with:
+          name: oklaya-windows-x64
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt
+          retention-days: 7
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          $archive = "oklaya-$env:GITHUB_REF_NAME-windows-x64.zip"
+          $notes = "Windows x64 CLI, administrator and client binaries (CPU-ready; model weights are separate). Verified model downloads: https://github.com/$env:GITHUB_REPOSITORY/releases/tag/models-1bc2622 . GPU dependencies must be installed from their upstream providers; see docs/windows-cuda.md in the source repository."
+          gh release create $env:GITHUB_REF_NAME "dist/$archive" dist/SHA256SUMS.txt --repo $env:GITHUB_REPOSITORY --verify-tag --title "oklaya $env:GITHUB_REF_NAME" --notes $notes
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub Release publication failed' }
