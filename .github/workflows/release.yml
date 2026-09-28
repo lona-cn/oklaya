@@ -47,6 +47,11 @@ jobs:
           rustup default stable
           if ($LASTEXITCODE -ne 0) { throw 'Rust toolchain selection failed' }
 
+      - name: Cache Windows Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-bin: false
+
       - name: Test and build Windows binaries
         run: |
           cargo test --workspace --locked
@@ -114,6 +119,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            Cargo.lock
+            crates/laya-android/gen/android/**/*.gradle.kts
+            crates/laya-android/gen/android/settings.gradle
+            crates/laya-android/gen/android/gradle.properties
+            crates/laya-android/gen/android/gradle/wrapper/gradle-wrapper.properties
 
       - uses: android-actions/setup-android@v4
       - name: Install Android SDK and NDK
@@ -125,7 +137,20 @@ jobs:
         with:
           targets: aarch64-linux-android
 
+      - name: Cache Android Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-bin: false
+
+      - name: Cache pinned Tauri CLI
+        id: tauri-cli-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cargo/bin/cargo-tauri
+          key: tauri-cli-ubuntu-24.04-${{ runner.arch }}-2.11.2
+
       - name: Install compatible Tauri CLI
+        if: steps.tauri-cli-cache.outputs.cache-hit != 'true'
         run: cargo install tauri-cli --version 2.11.2 --locked
 
       - name: Restore Android release signing key

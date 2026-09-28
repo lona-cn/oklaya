@@ -32,6 +32,8 @@ Recompile and recopy the Rust library after **any** native or bundled UI change;
 
 The [release workflow](../.github/workflows/release.yml) builds an ARM64 debug APK for Android-related pull requests and pushes to `master`; `workflow_dispatch` uploads temporary Android and Windows build artifacts without publishing. Pushing a `v*` version tag builds a **release-signed** ARM64 APK in parallel with the existing Windows ZIP and model parity checks. Only after both builds succeed does one job create a GitHub Release containing `oklaya-<tag>-android-arm64.apk`, `oklaya-<tag>-windows-x64.zip` and a combined `SHA256SUMS.txt`. The release APK is at `gen/android/app/build/outputs/apk/arm64/release/app-arm64-release.apk` before packaging. Models remain separate downloads, not part of the APK.
 
+The workflow caches Gradle dependencies, Rust dependencies and the pinned Tauri CLI on Android; Windows release builds cache Rust dependencies. Cache misses still perform full builds. APKs, model weights and release signing keys are not cached.
+
 Before pushing the **first version tag**, create and back up an Android signing keystore outside this repository. Add these repository **Actions secrets** under Settings → Secrets and variables → Actions:
 
 | Secret | Value |
