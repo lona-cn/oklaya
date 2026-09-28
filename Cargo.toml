@@ -4,5 +4,6 @@ members = [
     "crates/laya-cli-server",
     "crates/laya-gui-server",
     "crates/laya-gui-client",
+    "crates/laya-android",
 ]
 resolver = "2"

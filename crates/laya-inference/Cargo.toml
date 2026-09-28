@@ -8,7 +8,6 @@ license = "Apache-2.0"
 name = "laya_inference"
 
 [dependencies]
-ort = { version = "=2.0.0-rc.13", features = ["cuda"] }
 tokenizers = { version = "0.22", default-features = false, features = ["onig"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
@@ -19,3 +18,9 @@ directories = "6"
 sha2 = "0.10"
 hex = "0.4"
 indexmap = { version = "2", features = ["serde"] }
+
+[target.'cfg(target_os = "android")'.dependencies]
+ort = { version = "=2.0.0-rc.13", features = ["nnapi"] }
+
+[target.'cfg(not(target_os = "android"))'.dependencies]
+ort = { version = "=2.0.0-rc.13", features = ["cuda"] }

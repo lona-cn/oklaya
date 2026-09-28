@@ -5,8 +5,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use indexmap::IndexMap;
+#[cfg(not(target_os = "android"))]
+use ort::ep::{CUDA, ExecutionProvider};
 use ort::{
-    ep::{CUDA, ExecutionProvider},
     session::{Session, builder::GraphOptimizationLevel},
     value::{Tensor, TensorElementType},
 };
@@ -535,7 +536,9 @@ impl LayaBuilder {
             pad: token("pad_token")?,
         };
         let mask_text = token_cfg["mask_token"].as_str().unwrap().to_string();
+        #[cfg(not(target_os = "android"))]
         let cuda = CUDA::default();
+        #[cfg(not(target_os = "android"))]
         let available = if self.device == Device::Cpu {
             false
         } else {
@@ -548,13 +551,21 @@ impl LayaBuilder {
                 Err(err) => return Err(Error::ProviderUnavailable(err.to_string())),
             }
         };
+        #[cfg(not(target_os = "android"))]
         if self.device == Device::Cuda && !available {
             return Err(Error::ProviderUnavailable(
                 "CUDA execution provider is not available".into(),
             ));
         }
+        #[cfg(not(target_os = "android"))]
         if self.device == Device::Auto && !available {
             eprintln!("laya: CUDA execution provider unavailable; using CPU");
+        }
+        #[cfg(target_os = "android")]
+        if self.device == Device::Cuda {
+            return Err(Error::ProviderUnavailable(
+                "CUDA execution provider is unavailable on Android".into(),
+            ));
         }
         let cpu_session = || -> Result<Session> {
             let builder =
@@ -566,6 +577,7 @@ impl LayaBuilder {
                 .commit_from_file(&model_path)
                 .map_err(|e| Error::OrtInitialization(e.to_string()))
         };
+        #[cfg(not(target_os = "android"))]
         let (session, provider) = if available {
             // error_on_failure forbids ORT's implicit fallback when CUDA registration fails.
             let attempted = (|| -> Result<Session> {
@@ -600,6 +612,8 @@ impl LayaBuilder {
         } else {
             (cpu_session()?, "cpu")
         };
+        #[cfg(target_os = "android")]
+        let (session, provider) = (cpu_session()?, "cpu");
         inspect_graph(&session)?;
         Ok(Laya {
             session,
@@ -615,6 +629,7 @@ impl LayaBuilder {
 }
 
 /// Probe real kernels, not merely provider registration: some ORT builds lack sm_120 images.
+#[cfg(not(target_os = "android"))]
 fn probe_cuda(session: &mut Session, special: Special) -> Result<()> {
     let output = session.run(ort::inputs! {
         "input_ids" => Tensor::from_array(([1, 8], vec![special.cls, special.sep, special.mask, special.mask, special.sep, special.sep, special.pad, special.pad])).map_err(|e| Error::Inference(e.to_string()))?,

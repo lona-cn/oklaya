@@ -19,7 +19,7 @@ The first call may download hundreds of MB and take time to initialize. Diagnost
 
 For the short `laya` commands below, run `cargo install --path crates/laya-cli-server --bin laya` once or put `target/release` on `PATH`; otherwise replace `laya` with the executable path shown above.
 
-## Workspace and desktop apps
+## Workspace and apps
 
 | Crate | Role |
 |---|---|
@@ -27,8 +27,9 @@ For the short `laya` commands below, run `cargo install --path crates/laya-cli-s
 | `laya-cli-server` | `laya` / `laya-inspect` CLI tools and the inference HTTP API, including metadata-only monitoring |
 | `laya-gui-server` | Separate Tauri administrator: start/stop a managed inference process, inspect health, counters and recent request metadata |
 | `laya-gui-client` | Tauri decision workspace **and** browser-accessible local web server with same-origin prediction proxy |
+| `laya-android` | Independent Android ARM64 application: on-device CPU ONNX inference, private model storage, selectable protected LAN server and its own bilingual test page |
 
-Build all binaries, then launch the two graphical applications in separate terminals:
+Build the desktop binaries, then launch the two graphical applications in separate terminals:
 
 ```bash
 cargo build --workspace --release
@@ -40,11 +41,15 @@ The administrator opens a desktop window and serves its dashboard at `http://127
 
 Both graphical interfaces detect the browser or desktop WebView's language on first use: Chinese locales use 简体中文, and other locales use English. Use the language selector in either header to switch at any time; each interface remembers its choice in that browser/WebView.
 
-The administrator shows only in-memory request metadata (timestamp, status, latency, question count), never submitted state or instructions; history is capped at 100 entries and resets on service restart. On Windows, the desktop windows need WebView2; other platforms need their Tauri WebView dependencies. All services bind loopback by default and have no authentication: do not expose them publicly without access controls. API contract and curl example: [HTTP API](docs/http-api.md), [OpenAPI](docs/openapi.yaml). On Windows use `.exe` paths.
+The administrator shows only in-memory request metadata (timestamp, status, latency, question count), never submitted state or instructions; history is capped at 100 entries and resets when the server restarts. On Windows, the desktop windows need WebView2; other platforms need their Tauri WebView dependencies. The desktop services bind loopback by default and have no authentication: do not expose them publicly without access controls. API contract and curl example: [HTTP API](docs/http-api.md), [OpenAPI](docs/openapi.yaml). On Windows use `.exe` paths.
+
+## Android app
+
+The separate [`laya-android` crate](docs/android.md) builds an Android APK without `laya-gui-client` or a desktop/CLI inference server. On the phone, download and load the pinned multilingual model, run decisions locally, or choose a LAN port and share the on-device inference endpoint with a browser on another trusted device. The phone displays a fresh bearer token required by both mobile API endpoints; its browser test page accepts this token. LAN HTTP is unencrypted and stops when the Android app loses focus. Build/install instructions, security boundaries, and the Vulkan/WebGPU feasibility assessment are in the [Android guide](docs/android.md). Android uses CPU today; Vulkan acceleration is not advertised or enabled.
 
 ## GitHub releases
 
-Push a version tag such as `v0.1.0` to run the [Windows x64 release workflow](.github/workflows/release.yml). It builds and tests all crates, verifies a separately published multilingual model against the pinned hashes, runs the model parity test, and publishes a ZIP of the four executables with project and dependency license notices. `workflow_dispatch` runs the same checks and uploads a temporary build artifact without publishing a version release.
+Pull requests and pushes to `master` affecting Android build inputs run an ARM64 APK build in the [release workflow](.github/workflows/release.yml). After configuring the [Android signing secrets](docs/android.md#ci-and-github-releases), push a version tag such as `v0.1.0`: Windows x64 tests, pinned-model verification/parity and the signed Android build run in parallel. Only when both platforms pass does a single job publish the four Windows executables as a ZIP, an installable ARM64 APK and combined SHA256 checksums to one GitHub Release. `workflow_dispatch` uploads temporary Windows/Android build artifacts without publishing a release. The APK does not contain the model; the phone downloads it on first use.
 
 Large model files are **not** in Git. The [pinned model Release](https://github.com/lona-cn/oklaya/releases/tag/models-1bc2622) holds separate `laya-model-{english,multilingual,typed-decisions}.zip` archives, each containing its model directory and Apache license/attribution. Verify their SHA256 checksums before use. These archives are not installed automatically by extracting the application ZIP: by default `laya` downloads and verifies the selected model into its per-user cache, or library callers can supply an extracted directory via `Laya::builder().model_path(...)`. The application release is CPU-ready; CUDA needs separately installed vendor components. The optional original Microsoft ONNX Runtime GPU wheel is mirrored with its own license and third-party notices, but NVIDIA's cuBLAS SDK archive is **not** republished because its distribution terms restrict standalone redistribution. See [Windows CUDA setup](docs/windows-cuda.md) for official downloads.
 

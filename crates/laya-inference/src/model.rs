@@ -15,7 +15,7 @@ use sha2::{Digest, Sha256};
 
 use crate::Error;
 
-const REVISION: &str = "1bc2622b5a4e4ceb46aadf709d7a360eb7d3d1f4";
+pub const REVISION: &str = "1bc2622b5a4e4ceb46aadf709d7a360eb7d3d1f4";
 const BASE_URL: &str = "https://huggingface.co/codenamev/laya-onnx/resolve";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -165,18 +165,22 @@ pub fn model_dir(kind: ModelKind) -> Result<PathBuf, Error> {
 
 /// Resolve an installed model; fail rather than using an incomplete or corrupted cache.
 pub fn path(kind: ModelKind) -> Result<PathBuf, Error> {
-    let dir = model_dir(kind)?;
+    path_in(kind, &model_dir(kind)?)
+}
+
+/// Resolve and verify an installed model in an application-selected directory.
+pub fn path_in(kind: ModelKind, dir: &Path) -> Result<PathBuf, Error> {
     for asset in kind.assets() {
         let file = dir.join(asset.name);
         if !file.is_file() {
             return Err(Error::InvalidModelInput(format!(
-                "{kind} is not downloaded: {} is missing; run `laya model download {kind}`",
+                "{kind} is not downloaded: {} is missing",
                 asset.name
             )));
         }
         if !verify(&file, asset).map_err(download_error)? {
             return Err(Error::ChecksumMismatch(format!(
-                "{} does not match the pinned {kind} artifact; run `laya model download {kind}`",
+                "{} does not match the pinned {kind} artifact",
                 file.display()
             )));
         }
@@ -204,7 +208,11 @@ pub fn list() -> Result<Vec<(ModelKind, bool)>, Error> {
 
 /// Download all missing or invalid artifacts; interrupted files remain resumable.
 pub fn download(kind: ModelKind) -> Result<PathBuf, Error> {
-    let dir = model_dir(kind)?;
+    download_to(kind, &model_dir(kind)?)
+}
+
+/// Download and verify a pinned model in an application-selected directory.
+pub fn download_to(kind: ModelKind, dir: &Path) -> Result<PathBuf, Error> {
     let client = Client::builder()
         .connect_timeout(Duration::from_secs(30))
         .build()

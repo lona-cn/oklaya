@@ -19,7 +19,7 @@ Windows 上请将 `./target/release/laya` 换成 `.\target\release\laya.exe`。R
 
 以下示例中的简写命令 `laya` 可通过 `cargo install --path crates/laya-cli-server --bin laya` 安装，或将 `target/release` 加入 `PATH`；也可以改用上方的可执行文件路径。
 
-## Workspace 与桌面应用
+## Workspace 与应用
 
 | Crate | 职责 |
 |---|---|
@@ -27,8 +27,9 @@ Windows 上请将 `./target/release/laya` 换成 `.\target\release\laya.exe`。R
 | `laya-cli-server` | `laya` / `laya-inspect` 命令、推理 HTTP API 和仅含请求元数据的监控接口 |
 | `laya-gui-server` | 独立的 Tauri 图形化管理后台：启动或停止由其管理的推理进程，查看健康状态、计数和近期请求元数据 |
 | `laya-gui-client` | Tauri 决策工作台，同时提供可由浏览器访问的本地网页服务和同源预测代理 |
+| `laya-android` | 独立 Android ARM64 应用：设备本地 CPU ONNX 推理、私有模型存储、可选端口的受保护局域网服务及专属中英双语测试页面 |
 
-构建所有二进制文件后，在两个终端分别启动两个图形应用：
+构建桌面二进制文件后，在两个终端分别启动两个图形应用：
 
 ```bash
 cargo build --workspace --release
@@ -40,11 +41,15 @@ cargo build --workspace --release
 
 两个图形界面首次打开时会根据浏览器或桌面 WebView 的语言自动选择简体中文（中文语言环境）或英文（其他语言环境）。可随时通过各自页面顶部的语言选择框切换；所选语言会保存在该浏览器或 WebView 中。
 
-管理后台仅显示内存中的请求元数据（时间、状态、延迟、问题数量），不会记录提交的状态文本或指令；历史最多保留 100 条，服务重启后清空。Windows 桌面窗口需要 WebView2；其他平台需要安装 Tauri 所依赖的 WebView 组件。所有服务默认只监听本机，且没有身份验证；如需对外开放，必须增加访问控制。接口及 curl 示例见 [HTTP API](docs/http-api.md) 和 [OpenAPI](docs/openapi.yaml)。Windows 上请使用相应的 `.exe` 文件。
+管理后台仅显示内存中的请求元数据（时间、状态、延迟、问题数量），不会记录提交的状态文本或指令；历史最多保留 100 条，服务重启后清空。Windows 桌面窗口需要 WebView2；其他平台需要安装 Tauri 所依赖的 WebView 组件。桌面服务默认只监听本机，且没有身份验证；如需对外开放，必须增加访问控制。接口及 curl 示例见 [HTTP API](docs/http-api.md) 和 [OpenAPI](docs/openapi.yaml)。Windows 上请使用相应的 `.exe` 文件。
+
+## Android 应用
+
+独立的 [`laya-android` crate](docs/android.md) 可构建 ARM64 Android APK，**不依赖 `laya-gui-client` 或桌面/CLI 推理服务**。在手机中下载并加载已固定版本的 multilingual 模型后，即可本机推理；也可选择局域网端口，启动服务，在另一台设备的浏览器中打开手机显示的地址并输入本次启动生成的 Bearer 令牌，从测试页面提交问题。手机失焦时会停止服务；局域网 HTTP **未加密**，只能用于可信网络。构建安装、操作、安全限制以及 Vulkan/WebGPU 可行性调研见 [Android 指南](docs/android.md)。目前实际执行后端为 CPU，不声称具备 Vulkan 加速。
 
 ## GitHub 发布
 
-推送 `v0.1.0` 之类的版本标签会触发 [Windows x64 发布工作流](.github/workflows/release.yml)：构建并测试所有 crate、按固定哈希校验独立发布的多语言模型、运行模型差分测试，再将四个可执行文件、本项目及依赖的许可声明打包为 ZIP，发布到 GitHub Release。手动运行 `workflow_dispatch` 也会执行相同检查并上传临时构建产物，但不发布版本 Release。
+修改 Android 构建输入的 PR 或 `master` 分支提交会在[发布工作流](.github/workflows/release.yml)中构建 ARM64 APK。先配置 [Android 签名 Secrets](docs/android.md#ci-and-github-releases)，再推送 `v0.1.0` 等版本标签：Windows x64 构建测试、固定模型校验与差分测试和 Android 签名发布包并行进行；两个平台都通过后，由唯一的发布任务将四个 Windows 可执行文件的 ZIP、可安装的 ARM64 APK 和合并的 SHA256 校验文件发布到**同一** GitHub Release。手动运行 `workflow_dispatch` 只上传临时 Windows/Android 构建产物，不发布版本。APK 不包含模型权重，首次使用由手机自行下载。
 
 大模型文件**不进入 Git**。[固定版本的模型 Release](https://github.com/lona-cn/oklaya/releases/tag/models-1bc2622) 分别提供 `laya-model-{english,multilingual,typed-decisions}.zip`，每个压缩包包含模型目录以及 Apache 许可和归属声明。使用前应校验 SHA256。仅解压应用程序 ZIP 不会自动安装这些模型：默认情况下，`laya` 会把选中的模型下载并校验到用户缓存；推理库调用者也可以通过 `Laya::builder().model_path(...)` 指定已解压目录。应用发行包可用于 CPU；CUDA 需另行安装供应商组件。可选的微软 ONNX Runtime GPU 原版 wheel 连同自带许可和第三方声明上传；NVIDIA cuBLAS SDK 压缩包的分发条款限制单独转载，因此**不会**镜像发布，获取方式见 [Windows CUDA 指南](docs/windows-cuda.md)。
 

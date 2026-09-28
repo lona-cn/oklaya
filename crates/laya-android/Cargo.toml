@@ -1,0 +1,32 @@
+[package]
+name = "laya-android"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+build = "build.rs"
+
+[lib]
+name = "laya_android"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "laya-android"
+path = "src/main.rs"
+
+[dependencies]
+laya-inference = { path = "../laya-inference" }
+tauri = { version = "2", features = [] }
+tokio = { version = "1", features = ["full"] }
+axum = "0.8"
+indexmap = { version = "2", features = ["serde"] }
+parking_lot = "0.12"
+serde = { version = "1", features = ["derive"] }
+getrandom = "0.3"
+hex = "0.4"
+if-addrs = "0.14"
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }

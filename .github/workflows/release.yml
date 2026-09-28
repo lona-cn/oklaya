@@ -2,12 +2,27 @@ name: Release
 
 on:
   push:
+    branches:
+      - master
     tags:
       - 'v[0-9]*'
+    paths:
+      - '.github/workflows/release.yml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'crates/laya-inference/**'
+      - 'crates/laya-android/**'
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'crates/laya-inference/**'
+      - 'crates/laya-android/**'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -15,6 +30,7 @@ concurrency:
 
 jobs:
   windows-x64:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
     runs-on: windows-2025
     defaults:
       run:
@@ -79,8 +95,7 @@ jobs:
           $hash = (Get-FileHash "dist/$archive" -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  $archive" | Set-Content dist/SHA256SUMS.txt -Encoding ascii
 
-      - name: Keep manual build for inspection
-        if: github.event_name == 'workflow_dispatch'
+      - name: Store Windows build for publication or inspection
         uses: actions/upload-artifact@v7
         with:
           name: oklaya-windows-x64
@@ -89,10 +104,125 @@ jobs:
             dist/SHA256SUMS.txt
           retention-days: 7
 
-      - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+
+  android-arm64:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: android-actions/setup-android@v4
+      - name: Install Android SDK and NDK
         run: |
-          $archive = "oklaya-$env:GITHUB_REF_NAME-windows-x64.zip"
-          $notes = "Windows x64 CLI, administrator and client binaries (CPU-ready; model weights are separate). Verified model downloads: https://github.com/$env:GITHUB_REPOSITORY/releases/tag/models-1bc2622 . GPU dependencies must be installed from their upstream providers; see docs/windows-cuda.md in the source repository."
-          gh release create $env:GITHUB_REF_NAME "dist/$archive" dist/SHA256SUMS.txt --repo $env:GITHUB_REPOSITORY --verify-tag --title "oklaya $env:GITHUB_REF_NAME" --notes $notes
-          if ($LASTEXITCODE -ne 0) { throw 'GitHub Release publication failed' }
+          sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "ndk;30.0.14904198"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/30.0.14904198" >> "$GITHUB_ENV"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Install compatible Tauri CLI
+        run: cargo install tauri-cli --version 2.11.2 --locked
+
+      - name: Restore Android release signing key
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          LAYA_ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          LAYA_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          LAYA_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_BASE64 LAYA_ANDROID_STORE_PASSWORD LAYA_ANDROID_KEY_ALIAS LAYA_ANDROID_KEY_PASSWORD; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing Android release signing secret: $name"
+              exit 1
+            fi
+          done
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/laya-release.jks"
+          chmod 600 "$RUNNER_TEMP/laya-release.jks"
+          echo "LAYA_ANDROID_KEYSTORE=$RUNNER_TEMP/laya-release.jks" >> "$GITHUB_ENV"
+
+      - name: Build signed Android release APK
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        working-directory: crates/laya-android
+        env:
+          LAYA_ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          LAYA_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          LAYA_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: cargo tauri android build --ci --target aarch64 --apk
+
+      - name: Build Android CI debug APK
+        if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/v')
+        working-directory: crates/laya-android
+        run: cargo tauri android build --ci --debug --target aarch64 --apk
+
+      - name: Verify and stage Android APK
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/tags/v* ]]; then
+            apk=crates/laya-android/gen/android/app/build/outputs/apk/arm64/release/app-arm64-release.apk
+            destination="dist/oklaya-$GITHUB_REF_NAME-android-arm64.apk"
+          else
+            apk=crates/laya-android/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
+            destination=dist/oklaya-android-arm64-debug.apk
+          fi
+          test -s "$apk"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk" > dist/android-signature.txt
+          grep -q 'Signer #1 certificate SHA-256 digest:' dist/android-signature.txt
+          "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 4 "$apk"
+          unzip -Z1 "$apk" > dist/android-apk-contents.txt
+          grep -Fx 'lib/arm64-v8a/liblaya_android.so' dist/android-apk-contents.txt
+          grep -Fx 'lib/arm64-v8a/libc++_shared.so' dist/android-apk-contents.txt
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/tags/v* ]]; then
+            "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$apk" > dist/android-badging.txt
+            if grep -q 'CN=Android Debug' dist/android-signature.txt ||
+               grep -q '^application-debuggable$' dist/android-badging.txt; then
+              echo '::error::Refusing to publish a debug-signed or debuggable APK'
+              exit 1
+            fi
+          fi
+          cp "$apk" "$destination"
+
+      - name: Store Android build for publication or inspection
+        uses: actions/upload-artifact@v7
+        with:
+          name: oklaya-android-arm64
+          path: dist/*.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [windows-x64, android-arm64]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: oklaya-windows-x64
+          path: dist/windows
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: oklaya-android-arm64
+          path: dist/android
+
+      - name: Publish both platforms in one GitHub Release
+        run: |
+          set -euo pipefail
+          cp dist/windows/*.zip dist/
+          cp dist/android/*.apk dist/
+          (cd dist && sha256sum *.zip *.apk > SHA256SUMS.txt)
+          notes="Windows x64 CLI, administrator and client; Android ARM64 signed APK (CPU inference, Android 7.0+). Model weights are separate and downloaded on first use. Android guide: https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_REF_NAME/docs/android.md . Verified model: https://github.com/$GITHUB_REPOSITORY/releases/tag/models-1bc2622 ."
+          gh release create "$GITHUB_REF_NAME" dist/*.zip dist/*.apk dist/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "oklaya $GITHUB_REF_NAME" --notes "$notes"
