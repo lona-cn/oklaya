@@ -36,7 +36,7 @@ cargo build --workspace --release
 ./target/release/laya-gui-client
 ```
 
-The administrator opens a desktop window and serves its dashboard at `http://127.0.0.1:8081`; choose a model/device and start the inference service there. It looks for the `laya` binary beside its own executable; use `--laya-bin` to point to another copy. The client opens a separate desktop window and also serves its decision page at `http://127.0.0.1:8080`. It forwards predictions to the inference API at `http://127.0.0.1:3000`. For browser-only use, pass `--no-window` to either GUI binary. You can instead start the CLI API manually with `laya --device cpu serve --bind 127.0.0.1:3000`; the administrator cannot stop a process it did not start.
+The administrator opens a desktop window and serves its dashboard at `http://127.0.0.1:8081`; choose a model/device and start the inference service there. It looks for the `laya` binary beside its own executable; use `--laya-bin` to point to another copy. The client opens a separate desktop window and also serves its decision page at `http://127.0.0.1:8082`. It forwards predictions to the inference API at `http://127.0.0.1:3000`. For browser-only use, pass `--no-window` to either GUI binary. You can instead start the CLI API manually with `laya --device cpu serve --bind 127.0.0.1:3000`; the administrator cannot stop a process it did not start.
 
 Both graphical interfaces detect the browser or desktop WebView's language on first use: Chinese locales use 简体中文, and other locales use English. Use the language selector in either header to switch at any time; each interface remembers its choice in that browser/WebView.
 

@@ -21,7 +21,7 @@ const PREDICTIONS_PATH: &str = "/api/v1/predictions";
 #[command(about = "Open the Laya workspace or serve it in a browser")]
 struct Args {
     /// Interface to listen on (bind to a private interface only if you trust its clients).
-    #[arg(long, default_value = "127.0.0.1:8080")]
+    #[arg(long, default_value = "127.0.0.1:8082")]
     bind: SocketAddr,
     /// Base URL of the Laya inference API.
     #[arg(long, default_value = "http://127.0.0.1:3000")]
