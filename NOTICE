@@ -1,0 +1,22 @@
+laya-rs
+
+This project's source code is licensed under the Apache License, Version 2.0
+(see LICENSE). This license does not relicense third-party components or model
+artifacts.
+
+Laya model checkpoints are not committed to this repository. When downloaded
+or bundled, they remain works attributed to Convai Innovations:
+https://huggingface.co/convaiinnovations/laya
+The original model card declares Apache-2.0.
+
+The optional ONNX exports used by this project are published by codenamev:
+https://huggingface.co/codenamev/laya-onnx
+The conversion model card declares Apache-2.0 and attributes the original
+weights to Convai Innovations. The exact source revisions and artifact hashes
+are documented in docs/model-source.md.
+
+Third-party libraries and native runtimes retain their own licenses. In
+particular, ONNX Runtime is MIT-licensed. Binary distributions that include
+third-party components or models must preserve the applicable copyright,
+license, and attribution notices for those components. External CUDA and
+system WebView installations are not licensed by this repository.

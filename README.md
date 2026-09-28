@@ -61,10 +61,14 @@ laya bench --repetitions 3
 {"state":"Production database is unavailable.","questions":{"urgency":{"type":"score","instructions":"How urgent?","criteria":["low","medium","high"]},"outage":{"type":"noul","instructions":"Is this an outage?"}}}
 ```
 
-Save as `request.json` then run `laya --device cpu predict request.json`, or pipe to `laya predict -`. Output is a JSON object keyed by question ID; one forward pass covers all questions, one tokenizer and session are reused within an engine. Integration libraries use `Laya::builder().model(ModelKind::Multilingual).device(Device::Cpu).build()?` then `engine.predict(state, &questions)?`, where questions are ordered `IndexMap<String, Question>` and results are strongly typed `DecisionResult` values. `--max-len 8192` opts into longer multilingual context; state truncation is reported, not silently ignored. See [OMP local judge example](examples/omp-judge/README.md).
+Save as `request.json` then run `laya --device cpu predict request.json`, or pipe to `laya predict -`. Output is a JSON object keyed by question ID; one forward pass covers all questions, one tokenizer and session are reused within an engine. Integration libraries use `Laya::builder().model(ModelKind::Multilingual).device(Device::Cpu).build()?` then `engine.predict(state, &questions)?`, where questions are ordered `IndexMap<String, Question>` and results are strongly typed `DecisionResult` values. `--max-len 8192` opts into longer multilingual context; state truncation is reported, not silently ignored.
 
 ## Verification
 
 `cargo test --workspace` runs unit and HTTP proxy tests without downloading a model. Set `LAYA_RUN_MODEL_TESTS=1` and run `cargo test -p laya-inference --test reference` for the 23-case official Python ONNXAgent differential test and token-by-token tokenizer test; the suite then downloads a pinned model unless `LAYA_MODEL_DIR` points to a preexisting model folder. To inspect the actual input/output schema use `laya-inspect`. Benchmark reports measured warmup, model load, p50, p95 and throughput at 1/5/10/50 questions; numbers are hardware-specific.
 
 Model provenance, hashes and caveats: [model source](docs/model-source.md). Token/prompt/decision details: [inference contract](docs/inference-contract.md). GPU installation: [Windows CUDA](docs/windows-cuda.md).
+
+## License
+
+Project source code and original assets are licensed under the [Apache License 2.0](LICENSE), consistent with the crate manifests. Downloaded Laya model weights and ONNX conversions are separate Apache-2.0 works: the original weights are credited to Convai Innovations, and the ONNX exports are published by codenamev. These artifacts are not included in Git or relicensed by this project. See [NOTICE](NOTICE) and [model provenance](docs/model-source.md). Third-party libraries and native runtimes keep their own licenses (including MIT, MPL-2.0 and Unicode-3.0 dependencies); binary redistributors must retain the applicable license and attribution notices for what they bundle.

@@ -61,10 +61,14 @@ laya bench --repetitions 3
 {"state":"Production database is unavailable.","questions":{"urgency":{"type":"score","instructions":"How urgent?","criteria":["low","medium","high"]},"outage":{"type":"noul","instructions":"Is this an outage?"}}}
 ```
 
-保存为 `request.json`，运行 `laya --device cpu predict request.json`；也可将 JSON 通过 stdin 传入 `laya predict -`。输出是以问题 ID 为键的 JSON 对象。多个问题共用一次模型前向计算；同一个推理引擎复用 tokenizer 和 ONNX session。库调用方式为 `Laya::builder().model(ModelKind::Multilingual).device(Device::Cpu).build()?`，随后调用 `engine.predict(state, &questions)?`；其中 `questions` 是有序的 `IndexMap<String, Question>`，结果为强类型 `DecisionResult`。`--max-len 8192` 可启用更长的 multilingual 上下文；状态文本被截断时会报告，而非静默忽略。参见 [OMP 本地判定示例](examples/omp-judge/README.md)。
+保存为 `request.json`，运行 `laya --device cpu predict request.json`；也可将 JSON 通过 stdin 传入 `laya predict -`。输出是以问题 ID 为键的 JSON 对象。多个问题共用一次模型前向计算；同一个推理引擎复用 tokenizer 和 ONNX session。库调用方式为 `Laya::builder().model(ModelKind::Multilingual).device(Device::Cpu).build()?`，随后调用 `engine.predict(state, &questions)?`；其中 `questions` 是有序的 `IndexMap<String, Question>`，结果为强类型 `DecisionResult`。`--max-len 8192` 可启用更长的 multilingual 上下文；状态文本被截断时会报告，而非静默忽略。
 
 ## 验证
 
 `cargo test --workspace` 会运行单元测试和 HTTP 代理测试，不下载模型。设置 `LAYA_RUN_MODEL_TESTS=1` 并运行 `cargo test -p laya-inference --test reference`，会执行包含 23 个用例的官方 Python ONNXAgent 差分测试和逐 token 的 tokenizer 测试；如未通过 `LAYA_MODEL_DIR` 指定已有模型目录，测试可能下载已固定版本的模型。使用 `laya-inspect` 可检查实际模型的输入输出结构。基准测试报告模型加载时间、预热时间，以及单次处理 1/5/10/50 个问题时的 p50、p95 和吞吐率；结果取决于运行设备。
 
 模型来源、哈希和限制见[模型来源](docs/model-source.md)；token、提示词和决策细节见[推理契约](docs/inference-contract.md)；GPU 安装见 [Windows CUDA 指南](docs/windows-cuda.md)。
+
+## 许可证
+
+本项目源代码及原创资源采用 [Apache License 2.0](LICENSE)，与各 crate 的许可声明一致。下载的 Laya 模型权重和 ONNX 转换文件是独立的 Apache-2.0 作品：原始权重归属 Convai Innovations，ONNX 转换版本由 codenamev 发布。这些文件不在 Git 仓库中，也不会因本项目的许可证而被重新授权。来源及归属见 [NOTICE](NOTICE) 和[模型来源](docs/model-source.md)。第三方库和原生运行时仍适用各自的许可证（依赖中包括 MIT、MPL-2.0 和 Unicode-3.0）；发布包含这些组件的二进制文件时，应保留所包含组件适用的许可和归属声明。
