@@ -49,7 +49,7 @@ cargo build --workspace --release
 
 ## GitHub 发布
 
-修改 Android 构建输入的 PR 或 `master` 分支提交会在[发布工作流](.github/workflows/release.yml)中构建 ARM64 APK。先配置 [Android 签名 Secrets](docs/android.md#ci-and-github-releases)，再推送 `v0.1.0` 等版本标签：Windows x64 构建测试、固定模型校验与差分测试和 Android 签名发布包并行进行；两个平台都通过后，由唯一的发布任务将四个 Windows 可执行文件的 ZIP、可安装的 ARM64 APK 和合并的 SHA256 校验文件发布到**同一** GitHub Release。手动运行 `workflow_dispatch` 只上传临时 Windows/Android 构建产物，不发布版本。APK 不包含模型权重，首次使用由手机自行下载。
+修改 Android 构建输入的 PR 或 `master` 分支提交会在[发布工作流](.github/workflows/release.yml)中构建 ARM64 APK。配置 [Android 签名 Secrets](docs/android.md#ci-and-github-releases) 后推送 `v0.2.0` 版本标签：Windows x64 构建测试、固定模型校验与差分测试和 Android 签名发布包并行进行；两个平台都通过后，由唯一的发布任务将四个 Windows 可执行文件的 ZIP、可安装的 ARM64 APK 和合并的 SHA256 校验文件发布到**同一** GitHub Release。手动运行 `workflow_dispatch` 只上传临时 Windows/Android 构建产物，不发布版本。APK 不包含模型权重，首次使用由手机自行下载。
 
 大模型文件**不进入 Git**。[固定版本的模型 Release](https://github.com/lona-cn/oklaya/releases/tag/models-1bc2622) 分别提供 `laya-model-{english,multilingual,typed-decisions}.zip`，每个压缩包包含模型目录以及 Apache 许可和归属声明。使用前应校验 SHA256。仅解压应用程序 ZIP 不会自动安装这些模型：默认情况下，`laya` 会把选中的模型下载并校验到用户缓存；推理库调用者也可以通过 `Laya::builder().model_path(...)` 指定已解压目录。应用发行包可用于 CPU；CUDA 需另行安装供应商组件。可选的微软 ONNX Runtime GPU 原版 wheel 连同自带许可和第三方声明上传；NVIDIA cuBLAS SDK 压缩包的分发条款限制单独转载，因此**不会**镜像发布，获取方式见 [Windows CUDA 指南](docs/windows-cuda.md)。
 

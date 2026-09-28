@@ -2125,7 +2125,7 @@ dependencies = [
 
 [[package]]
 name = "laya-android"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "axum",
  "getrandom 0.3.4",
@@ -2143,7 +2143,7 @@ dependencies = [
 
 [[package]]
 name = "laya-cli-server"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -2159,7 +2159,7 @@ dependencies = [
 
 [[package]]
 name = "laya-gui-client"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "axum",
  "clap",
@@ -2172,7 +2172,7 @@ dependencies = [
 
 [[package]]
 name = "laya-gui-server"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "axum",
  "clap",
@@ -2186,7 +2186,7 @@ dependencies = [
 
 [[package]]
 name = "laya-inference"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "directories",
  "hex",
