@@ -1,0 +1,6 @@
+/target/
+/models/
+/gpu-runtime/
+*.onnx.part
+/crates/laya-gui-client/gen/schemas/
+/crates/laya-gui-server/gen/schemas/

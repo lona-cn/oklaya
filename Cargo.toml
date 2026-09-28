@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "crates/laya-inference",
+    "crates/laya-cli-server",
+    "crates/laya-gui-server",
+    "crates/laya-gui-client",
+]
+resolver = "2"

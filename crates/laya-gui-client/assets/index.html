@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070d13">
+  <title>Laya — Decision workspace</title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main" data-i18n="skipLink">Skip to workspace</a>
+  <header class="masthead">
+    <h1 class="brand"><span class="brand-mark" aria-hidden="true"></span>LAYA<span class="brand-period">/</span><span class="brand-title" data-i18n="brandTitle">Decision workspace</span></h1>
+    <div class="header-actions"><nav aria-label="Workspace" data-i18n-aria="workspace"><a href="#prediction-form" data-i18n="navQuestion">Question</a><a href="#result-title" data-i18n="navResult">Result</a></nav><label class="language-control"><span class="visually-hidden" data-i18n="language">Language</span><select id="language" aria-label="Language" data-i18n-aria="language"><option value="zh">简体中文</option><option value="en">English</option></select></label></div>
+  </header>
+  <main id="main">
+    <div class="workspace">
+      <section class="panel composer" aria-labelledby="compose-title">
+        <div class="panel-head"><h2 id="compose-title" data-i18n="composeTitle">Define the situation</h2></div>
+        <form id="prediction-form">
+          <div class="field"><label for="state"><span data-i18n="stateLabel">Current state</span> <span class="required">*</span></label><p id="state-hint" class="hint" data-i18n="stateHint">Facts and context to consider.</p><textarea id="state" name="state" rows="3" aria-describedby="state-hint" placeholder="Describe the situation, constraints, and relevant details…" data-i18n-placeholder="statePlaceholder" required></textarea></div>
+          <div class="field"><label for="question-type" data-i18n="typeLabel">What kind of answer?</label><select id="question-type" name="question-type"><option value="choice" data-i18n="typeChoice">Choose between options</option><option value="score" data-i18n="typeScore">Score criteria</option><option value="noul" data-i18n="typeNoul">Yes or no</option></select></div>
+          <div class="field"><label for="instructions"><span data-i18n="instructionsLabel">Instructions</span> <span class="required">*</span></label><p id="instructions-hint" class="hint" data-i18n="instructionsHint">Ask one focused question.</p><textarea id="instructions" name="instructions" rows="2" aria-describedby="instructions-hint" placeholder="Which option best fits the situation?" data-i18n-placeholder="instructionsPlaceholder" required></textarea></div>
+          <div id="criteria-section" class="criteria-section" aria-labelledby="criteria-title"><div class="criteria-header"><div><h3 id="criteria-title"></h3><p id="criteria-hint" class="hint"></p></div><button id="add-criterion" class="text-button" type="button"></button></div><div id="criteria-list" class="criteria-list"></div></div>
+          <div id="form-error" class="form-error" role="alert" tabindex="-1" hidden></div>
+          <div class="form-footer"><button id="submit-button" class="submit-button" type="submit"><span id="submit-label" data-i18n="runDecision">Run decision</span> <span aria-hidden="true">↗</span></button></div>
+        </form>
+      </section>
+      <section class="panel result-panel" aria-labelledby="result-title">
+        <div class="panel-head"><h2 id="result-title" data-i18n="resultTitle">The reading</h2></div>
+        <p id="request-status" class="request-status" role="status" aria-live="polite" data-state="idle"></p>
+        <div id="result-content" class="result-content" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,70 @@
+# laya-rs
+
+[English](README.md) | **简体中文**
+
+使用 Rust、Hugging Face `tokenizers` 和 ONNX Runtime（`ort`）在本地执行类型化决策推理，无需 Python 运行时。默认的 multilingual 模型是基于 Laya 官方权重的[第三方 ONNX 转换版本](docs/model-source.md)，版本已固定。若要依据置信度作自动决策，请先阅读[推理契约](docs/inference-contract.md)。
+
+## 构建与运行
+
+```bash
+cargo build --release
+./target/release/laya model download multilingual
+./target/release/laya --device cpu bool --text "Please cancel my account" --question "Does the user want to cancel?"
+./target/release/laya --device cuda choice --text "The app crashes" --question "Which team?" --option billing=payments --option technical=bugs
+```
+
+Windows 上请将 `./target/release/laya` 换成 `.\target\release\laya.exe`。RTX 5060 Ti 的 CUDA 推理需要按照[已验证的 Windows CUDA 安装说明](docs/windows-cuda.md)配置；显式指定 `--device cuda` 而 CUDA 无法运行时，命令会报错。`--device auto` 会尝试 CUDA，并在回退 CPU 时将原因写入 stderr。`--model english` 和 `--model typed-decisions` 可选择其他固定版本的模型。`model list`、`model path multilingual`、`model download english` 用于管理用户级持久缓存（Linux 为 `~/.cache/laya-rs/`，Windows/macOS 使用平台标准缓存目录）。下载支持续传，完成后校验 SHA256，再原子地替换目标文件。
+
+首次运行可能需要下载数百 MB 的文件并初始化模型。诊断信息、进度及模型、执行提供程序、文件路径写入 stderr；预测 JSON 写入 stdout。
+
+以下示例中的简写命令 `laya` 可通过 `cargo install --path crates/laya-cli-server --bin laya` 安装，或将 `target/release` 加入 `PATH`；也可以改用上方的可执行文件路径。
+
+## Workspace 与桌面应用
+
+| Crate | 职责 |
+|---|---|
+| `laya-inference` | 可复用的模型下载、tokenizer 和 ONNX 推理库（`laya_inference`） |
+| `laya-cli-server` | `laya` / `laya-inspect` 命令、推理 HTTP API 和仅含请求元数据的监控接口 |
+| `laya-gui-server` | 独立的 Tauri 图形化管理后台：启动或停止由其管理的推理进程，查看健康状态、计数和近期请求元数据 |
+| `laya-gui-client` | Tauri 决策工作台，同时提供可由浏览器访问的本地网页服务和同源预测代理 |
+
+构建所有二进制文件后，在两个终端分别启动两个图形应用：
+
+```bash
+cargo build --workspace --release
+./target/release/laya-gui-server
+./target/release/laya-gui-client
+```
+
+管理后台打开桌面窗口，并在 `http://127.0.0.1:8081` 提供网页；在其中选择模型和设备，再启动推理服务。它默认查找与自身可执行文件同目录的 `laya`；如存放在别处，可通过 `--laya-bin` 指定。客户端打开独立桌面窗口，也在 `http://127.0.0.1:8080` 提供决策页面；预测请求转发至 `http://127.0.0.1:3000` 的推理 API。只用浏览器时，可给任一 GUI 程序添加 `--no-window`。也可手动运行 `laya --device cpu serve --bind 127.0.0.1:3000` 启动推理 API；管理后台不能停止并非由其启动的进程。
+
+两个图形界面首次打开时会根据浏览器或桌面 WebView 的语言自动选择简体中文（中文语言环境）或英文（其他语言环境）。可随时通过各自页面顶部的语言选择框切换；所选语言会保存在该浏览器或 WebView 中。
+
+管理后台仅显示内存中的请求元数据（时间、状态、延迟、问题数量），不会记录提交的状态文本或指令；历史最多保留 100 条，服务重启后清空。Windows 桌面窗口需要 WebView2；其他平台需要安装 Tauri 所依赖的 WebView 组件。所有服务默认只监听本机，且没有身份验证；如需对外开放，必须增加访问控制。接口及 curl 示例见 [HTTP API](docs/http-api.md) 和 [OpenAPI](docs/openapi.yaml)。Windows 上请使用相应的 `.exe` 文件。
+
+## CLI
+
+```bash
+laya choice --text "The app crashes" --question "Which team?" --option billing="payments and refunds" --option technical="bugs and crashes"
+laya bool --text "Please cancel" --question "Does the user want to cancel?"
+laya score --text "Production database down" --question "Urgency?" --level low --level medium --level high
+laya inspect /path/to/model.onnx
+laya-inspect /path/to/model.onnx
+laya bench --repetitions 3
+```
+
+`score` 返回按概率加权的、从零开始的等级索引，并附带等级说明；`bool` 使用 Laya 的 `noul` 类型，返回 P(true)。每个结果都包含独立决策头的 `action_probability`。基于熵计算的 `confidence` 与最高答案概率 `answer_confidence` 并不相同；项目不提供适用于所有场景的统一阈值。
+
+## JSON 模式与推理库
+
+```json
+{"state":"Production database is unavailable.","questions":{"urgency":{"type":"score","instructions":"How urgent?","criteria":["low","medium","high"]},"outage":{"type":"noul","instructions":"Is this an outage?"}}}
+```
+
+保存为 `request.json`，运行 `laya --device cpu predict request.json`；也可将 JSON 通过 stdin 传入 `laya predict -`。输出是以问题 ID 为键的 JSON 对象。多个问题共用一次模型前向计算；同一个推理引擎复用 tokenizer 和 ONNX session。库调用方式为 `Laya::builder().model(ModelKind::Multilingual).device(Device::Cpu).build()?`，随后调用 `engine.predict(state, &questions)?`；其中 `questions` 是有序的 `IndexMap<String, Question>`，结果为强类型 `DecisionResult`。`--max-len 8192` 可启用更长的 multilingual 上下文；状态文本被截断时会报告，而非静默忽略。参见 [OMP 本地判定示例](examples/omp-judge/README.md)。
+
+## 验证
+
+`cargo test --workspace` 会运行单元测试和 HTTP 代理测试，不下载模型。设置 `LAYA_RUN_MODEL_TESTS=1` 并运行 `cargo test -p laya-inference --test reference`，会执行包含 23 个用例的官方 Python ONNXAgent 差分测试和逐 token 的 tokenizer 测试；如未通过 `LAYA_MODEL_DIR` 指定已有模型目录，测试可能下载已固定版本的模型。使用 `laya-inspect` 可检查实际模型的输入输出结构。基准测试报告模型加载时间、预热时间，以及单次处理 1/5/10/50 个问题时的 p50、p95 和吞吐率；结果取决于运行设备。
+
+模型来源、哈希和限制见[模型来源](docs/model-source.md)；token、提示词和决策细节见[推理契约](docs/inference-contract.md)；GPU 安装见 [Windows CUDA 指南](docs/windows-cuda.md)。

@@ -1,0 +1,25 @@
+[package]
+name = "laya-cli-server"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[[bin]]
+name = "laya"
+path = "src/main.rs"
+
+[[bin]]
+name = "laya-inspect"
+path = "src/bin/laya-inspect.rs"
+
+[dependencies]
+laya-inference = { path = "../laya-inference" }
+ort = { version = "=2.0.0-rc.13", features = ["cuda"] }
+clap = { version = "4", features = ["derive"] }
+indexmap = { version = "2", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+anyhow = "1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }

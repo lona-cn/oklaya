@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Laya Workspace",
+  "version": "0.1.0",
+  "identifier": "dev.laya.workspace",
+  "build": {
+    "frontendDist": "assets"
+  },
+  "app": {
+    "windows": []
+  }
+}

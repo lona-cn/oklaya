@@ -1,0 +1,275 @@
+openapi: 3.1.0
+info:
+  title: Laya local inference API
+  version: 1.0.0
+  description: Loopback-only by default; place behind authentication before public exposure.
+servers:
+  - url: http://127.0.0.1:3000
+paths:
+  /api/v1/health:
+    get:
+      summary: Loaded model readiness (CLI server only)
+      responses:
+        '200':
+          description: Model loaded
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, model, provider]
+                properties:
+                  status: { type: string, const: ok }
+                  model: { type: string }
+                  provider: { type: string, enum: [cpu, cuda] }
+  /api/v1/stats:
+    get:
+      summary: In-memory prediction counters (CLI server only)
+      responses:
+        '200':
+          description: Counters since the current CLI server started
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [total_requests, succeeded, failed, average_latency_ms]
+                properties:
+                  total_requests: { type: integer, minimum: 0 }
+                  succeeded: { type: integer, minimum: 0 }
+                  failed: { type: integer, minimum: 0 }
+                  average_latency_ms: { type: number, minimum: 0 }
+        '500': { $ref: '#/components/responses/Error' }
+  /api/v1/requests:
+    get:
+      summary: Recent prediction metadata, never request content (CLI server only)
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+        - name: cursor
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Newest-first page of the last 100 requests
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, next_cursor]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, at_unix_ms, status, duration_ms, question_count]
+                      properties:
+                        id: { type: integer, minimum: 1 }
+                        at_unix_ms: { type: integer, minimum: 0 }
+                        status: { type: string, enum: [ok, error] }
+                        duration_ms: { type: integer, minimum: 0 }
+                        question_count: { type: integer, minimum: 0 }
+                  next_cursor: { type: [string, 'null'] }
+        '400': { $ref: '#/components/responses/Error' }
+        '500': { $ref: '#/components/responses/Error' }
+  /api/v1/predictions:
+    post:
+      summary: Predict typed decisions in one batch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Request'
+      responses:
+        '200':
+          description: Decisions keyed by question ID
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/Decision'
+        '400': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+        '500': { $ref: '#/components/responses/Error' }
+        '502': { $ref: '#/components/responses/Error' }
+  /admin/status:
+    servers:
+      - url: http://127.0.0.1:8081
+    get:
+      summary: Owned inference process status (local administrator)
+      responses:
+        '200':
+          description: Current process state; health is null until ready
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state, model, device, pid, uptime_seconds, health, message]
+                properties:
+                  state: { type: string, enum: [stopped, starting, running, failed] }
+                  model: { type: [string, 'null'] }
+                  device: { type: [string, 'null'] }
+                  pid: { type: [integer, 'null'] }
+                  uptime_seconds: { type: [integer, 'null'] }
+                  health:
+                    oneOf:
+                      - type: 'null'
+                      - type: object
+                        required: [status, model, provider]
+                        properties:
+                          status: { type: string }
+                          model: { type: string }
+                          provider: { type: string }
+                  message: { type: [string, 'null'] }
+        '403': { $ref: '#/components/responses/Error' }
+  /admin/start:
+    servers:
+      - url: http://127.0.0.1:8081
+    post:
+      summary: Start an owned local inference process; completion is asynchronous
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [model, device]
+              additionalProperties: false
+              properties:
+                model: { type: string, enum: [multilingual, english, typed-decisions] }
+                device: { type: string, enum: [auto, cpu, cuda] }
+      responses:
+        '202':
+          description: Child spawned, poll /admin/status for readiness
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state: { type: string, const: starting }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '500': { $ref: '#/components/responses/Error' }
+  /admin/stop:
+    servers:
+      - url: http://127.0.0.1:8081
+    post:
+      summary: Stop only the process owned by this administrator
+      responses:
+        '200':
+          description: Child stopped
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state: { type: string, const: stopped }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '500': { $ref: '#/components/responses/Error' }
+  /admin/telemetry:
+    servers:
+      - url: http://127.0.0.1:8081
+    get:
+      summary: Latest metadata-only telemetry from the owned CLI server
+      responses:
+        '200':
+          description: Inference counters and most recent 50 request metadata entries
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [stats, history]
+                properties:
+                  stats:
+                    $ref: '#/paths/~1api~1v1~1stats/get/responses/200/content/application~1json/schema'
+                  history:
+                    $ref: '#/paths/~1api~1v1~1requests/get/responses/200/content/application~1json/schema'
+        '403': { $ref: '#/components/responses/Error' }
+        '502': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+components:
+  responses:
+    Error:
+      description: Request or server failure (502 from GUI proxy only)
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error:
+                type: object
+                required: [code, message]
+                properties:
+                  code: { type: string }
+                  message: { type: string }
+  schemas:
+    Request:
+      type: object
+      required: [state, questions]
+      properties:
+        state: { type: string }
+        questions:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: object
+                required: [type, instructions, criteria]
+                properties:
+                  type: { const: choice }
+                  instructions: { type: string }
+                  criteria:
+                    type: object
+                    additionalProperties: { type: string }
+              - type: object
+                required: [type, instructions, criteria]
+                properties:
+                  type: { const: score }
+                  instructions: { type: string }
+                  criteria:
+                    type: array
+                    items: { type: string }
+              - type: object
+                required: [type, instructions]
+                properties:
+                  type: { const: noul }
+                  instructions: { type: string }
+                  criteria:
+                    type: object
+                    additionalProperties: { type: string }
+    Decision:
+      oneOf:
+        - type: object
+          required: [choice, confidence, answer_confidence, action_probability, probabilities]
+          properties:
+            choice: { type: string }
+            confidence: { type: number }
+            answer_confidence: { type: number }
+            action_probability: { type: number }
+            probabilities:
+              type: object
+              additionalProperties: { type: number }
+        - type: object
+          required: [score, confidence, answer_confidence, action_probability, legend, probabilities]
+          properties:
+            score: { type: number }
+            confidence: { type: number }
+            answer_confidence: { type: number }
+            action_probability: { type: number }
+            legend:
+              type: object
+              additionalProperties: { type: string }
+            probabilities:
+              type: object
+              additionalProperties: { type: number }
+        - type: object
+          required: [value, probability, confidence, answer_confidence, action_probability]
+          properties:
+            value: { type: boolean }
+            probability: { type: number }
+            confidence: { type: number }
+            answer_confidence: { type: number }
+            action_probability: { type: number }

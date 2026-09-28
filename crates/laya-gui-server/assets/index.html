@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070d13">
+  <title>Laya · Operations console</title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content" data-i18n="skip">Skip to controls</a>
+  <div class="shell">
+    <header class="topbar">
+      <h1>Laya <span data-i18n="operations">/ Operations</span></h1>
+      <div class="topbar-end"><label for="language" data-i18n="language">Language</label><select id="language" aria-label="Language"><option value="zh" lang="zh">简体中文</option><option value="en" lang="en">English</option></select><span class="local-badge" data-i18n="localAdmin">Local admin</span></div>
+    </header>
+    <main id="main-content" tabindex="-1">
+      <section id="state-panel" class="state-panel" data-state="checking" aria-label="Service status" aria-live="polite">
+        <div class="state-summary">
+          <span id="status-symbol" class="status-symbol" aria-hidden="true">○</span>
+          <div><span class="field-label" data-i18n="serviceStatus">Service status</span><h2 id="state-name" class="state-name">Checking…</h2></div>
+          <p id="state-message">Connecting to the local administrator.</p>
+        </div>
+        <dl class="process-meta">
+          <div><dt data-i18n="model">Model</dt><dd id="active-model">—</dd></div>
+          <div><dt data-i18n="device">Device</dt><dd id="active-device">—</dd></div>
+          <div><dt>PID</dt><dd id="active-pid">—</dd></div>
+        </dl>
+      </section>
+      <section class="controls" aria-labelledby="controls-title">
+        <div class="section-heading"><h2 id="controls-title" data-i18n="controls">Service controls</h2><span class="section-note" data-i18n="nextStart">Changes apply on next start</span></div>
+        <form id="launch-form">
+          <label for="model"><span data-i18n="model">Model</span><select id="model" name="model"><option value="multilingual" data-i18n="multilingual">Multilingual</option><option value="english" data-i18n="englishModel">English</option><option value="typed-decisions" data-i18n="typedDecisions">Typed decisions</option></select></label>
+          <label for="device"><span data-i18n="device">Device</span><select id="device" name="device"><option value="auto" data-i18n="autoSelect">Auto select</option><option value="cpu">CPU</option><option value="cuda">CUDA</option></select></label>
+          <div class="actions"><button id="start" type="submit" data-i18n="start">Start service</button><button id="stop" type="button" disabled data-i18n="stop">Stop service</button></div>
+        </form>
+        <p id="action-message" role="alert"></p>
+      </section>
+      <section class="metrics" aria-labelledby="metrics-title">
+        <div class="section-heading"><h2 id="metrics-title" data-i18n="liveMetrics">Live metrics</h2><span id="api-state" class="section-note" role="status">Awaiting service</span></div>
+        <div class="metric-grid"><div class="metric"><span data-i18n="totalRequests">Total requests</span><strong id="total">—</strong></div><div class="metric"><span data-i18n="succeeded">Succeeded</span><strong id="success">—</strong></div><div class="metric"><span data-i18n="failedMetric">Failed</span><strong id="failed">—</strong></div><div class="metric"><span data-i18n="avgLatency">Avg. latency</span><strong id="latency">—</strong></div></div>
+        <dl class="details"><div><dt data-i18n="provider">Provider</dt><dd id="provider">—</dd></div><div><dt data-i18n="uptime">Uptime</dt><dd id="uptime">—</dd></div></dl>
+      </section>
+      <section class="history" aria-labelledby="history-title">
+        <div class="section-heading"><h2 id="history-title" data-i18n="recentRequests">Recent requests</h2><span class="section-note" data-i18n="historyNote">Last 50 · metadata only</span></div>
+        <div class="table-wrap" role="region" aria-label="Recent request history" tabindex="0"><table><thead><tr><th scope="col">ID</th><th scope="col" data-i18n="time">Time</th><th scope="col" data-i18n="result">Result</th><th scope="col" data-i18n="duration">Duration</th><th scope="col" data-i18n="questions">Questions</th></tr></thead><tbody id="request-rows"><tr><td colspan="5" class="empty">No requests to display.</td></tr></tbody></table></div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

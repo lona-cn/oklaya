@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Laya Operations Console",
+  "version": "0.1.0",
+  "identifier": "dev.laya.admin",
+  "build": { "frontendDist": "./assets" },
+  "app": {
+    "windows": [],
+    "security": { "csp": "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'" }
+  }
+}

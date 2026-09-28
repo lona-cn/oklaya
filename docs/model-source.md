@@ -1,0 +1,17 @@
+# Pinned model source
+
+**Selected:** [`codenamev/laya-onnx`](https://huggingface.co/codenamev/laya-onnx), revision [`1bc2622b5a4e4ceb46aadf709d7a360eb7d3d1f4`](https://huggingface.co/codenamev/laya-onnx/tree/1bc2622b5a4e4ceb46aadf709d7a360eb7d3d1f4), Apache-2.0 as declared in the model card. Original checkpoints: [`convaiinnovations/laya`](https://huggingface.co/convaiinnovations/laya), original source revision `1c5edc17a7acd8701df6fc341c0d179f1c62c982` claimed by exporter. Exporter: [ruby-laya/tools/export_onnx.py](https://github.com/codenamev/ruby-laya/blob/main/tools/export_onnx.py), using Laya 0.3.7 / PyTorch 2.14.0. This is a **third-party conversion**, not an official artifact. Official Hugging Face checkpoint trees do not ship ready-to-use ONNX files; official `scripts/export_onnx.py` supplies an export procedure, not downloadable converted weights. The alternative third-party exports lack this bundle's full provenance/multi-checkpoint parity claims or diverge in tensor names. Re-evaluate if an official full graph becomes available.
+
+Immutable download base: `https://huggingface.co/codenamev/laya-onnx/resolve/1bc2622b5a4e4ceb46aadf709d7a360eb7d3d1f4/`; append each `english/`, `multilingual/`, `typed-decisions/` prefix and artifact path `model.onnx`, `rl_agent_config.json`, `onnx_config.json`, `tokenizer/tokenizer.json`, `tokenizer/tokenizer_config.json`. The model manager checks SHA256 before reuse and after download.
+
+| Kind | Encoder | Context | ONNX size | ONNX SHA256 |
+|---|---|---:|---:|---|
+| English | ModernBERT-large | 512 | 846,075,711 | `ea2a37ef3bea4c1ebf7484b3b3da51de51cf9949fdd8a0088129db10dbb83615` |
+| Multilingual | mmBERT-base | 1024 (up to 8192 opt-in) | 646,693,695 | `da6a0f87380597f679b12ce539e0a187e923fcffcf8dfc2f035728388dceacb0` |
+| Typed-decisions | ModernBERT-large | 1024 | 846,075,712 | `7bc0662f05f69635291b1f823a946931b9936fcebd2ea98db85da70ebb8f4ba2` |
+
+The multilingual ONNX SHA256 was independently computed after downloading; other LFS hashes are published in [Hub tree API](https://huggingface.co/api/models/codenamev/laya-onnx/tree/1bc2622b5a4e4ceb46aadf709d7a360eb7d3d1f4?recursive=true). Direct graph inspection found five inputs (`input_ids`, `attention_mask`, `marker_pos`, `marker_mask`, `qtype`) and three outputs (`logits`, `act_logits`, `last_hidden_state`); opset 20, full typed decision/action heads. See [inference contract](inference-contract.md).
+
+The pinned SHA256 of every companion artifact is encoded in the model manager manifest. Independently downloaded multilingual companion hashes: config `25061739243b617ad88d1219ba6f8a9c86c5881ca28df024fa2d9b3b2fcc30c6`; ONNX config `7eff4d0af9a8b22b977b690ab9e7d97ea2cda6c0a449e53502c06f7db2ae915f`; tokenizer JSON `609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f`; tokenizer config `6c6b2d8e3c84ce0e671c129cd6b374b235d6f9863042a5836358d00a89bbb5a1`.
+
+**Limitations:** Conversion publisher is not the upstream maintainer; the source revision statement and parity claims have not been independently reproduced against its pinned source checkpoint. Conversion may differ from a later official runtime or fine-tuned checkpoint. Calibrated confidence is domain-dependent; temperature buckets are bounded per current upstream behavior. Graph compilation/loading and CUDA provider must be checked on target hardware. Avoid treating a high probability as a guarantee.

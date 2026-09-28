@@ -1,0 +1,728 @@
+[
+  {
+    "id": "choice-0",
+    "state": "The application crashes whenever I open settings.",
+    "questions": {
+      "department": {
+        "type": "choice",
+        "instructions": "Which department should handle this?",
+        "criteria": {
+          "billing": "payments and refunds",
+          "technical": "bugs and crashes",
+          "other": "everything else"
+        }
+      }
+    },
+    "answers": {
+      "department": {
+        "type": "choice",
+        "choice": "technical",
+        "probabilities": {
+          "billing": 0.0006,
+          "technical": 0.9929,
+          "other": 0.0065
+        },
+        "confidence": 0.9596,
+        "answer_confidence": 0.9929,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "score-0",
+    "state": "The application crashes whenever I open settings.",
+    "questions": {
+      "urgency": {
+        "type": "score",
+        "instructions": "How urgent is this?",
+        "criteria": [
+          "low",
+          "medium",
+          "high"
+        ]
+      }
+    },
+    "answers": {
+      "urgency": {
+        "type": "score",
+        "score": 1.025,
+        "legend": {
+          "0": "low",
+          "1": "medium",
+          "2": "high"
+        },
+        "probabilities": {
+          "0": 0.0957,
+          "1": 0.7836,
+          "2": 0.1207
+        },
+        "confidence": 0.3893,
+        "answer_confidence": 0.7836,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "noul-0",
+    "state": "The application crashes whenever I open settings.",
+    "questions": {
+      "cancellation": {
+        "type": "noul",
+        "instructions": "Does the user want to cancel?"
+      }
+    },
+    "answers": {
+      "cancellation": {
+        "type": "noul",
+        "noul": 0.0788,
+        "confidence": 0.9212,
+        "answer_confidence": 0.9212,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "choice-1",
+    "state": "Please refund the duplicate payment.",
+    "questions": {
+      "department": {
+        "type": "choice",
+        "instructions": "Which department should handle this?",
+        "criteria": {
+          "billing": "payments and refunds",
+          "technical": "bugs and crashes",
+          "other": "everything else"
+        }
+      }
+    },
+    "answers": {
+      "department": {
+        "type": "choice",
+        "choice": "billing",
+        "probabilities": {
+          "billing": 1.0,
+          "technical": 0.0,
+          "other": 0.0
+        },
+        "confidence": 1.0,
+        "answer_confidence": 1.0,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "score-1",
+    "state": "Please refund the duplicate payment.",
+    "questions": {
+      "urgency": {
+        "type": "score",
+        "instructions": "How urgent is this?",
+        "criteria": [
+          "low",
+          "medium",
+          "high"
+        ]
+      }
+    },
+    "answers": {
+      "urgency": {
+        "type": "score",
+        "score": 1.3113,
+        "legend": {
+          "0": "low",
+          "1": "medium",
+          "2": "high"
+        },
+        "probabilities": {
+          "0": 0.0625,
+          "1": 0.5637,
+          "2": 0.3738
+        },
+        "confidence": 0.2134,
+        "answer_confidence": 0.5637,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "noul-1",
+    "state": "Please refund the duplicate payment.",
+    "questions": {
+      "cancellation": {
+        "type": "noul",
+        "instructions": "Does the user want to cancel?"
+      }
+    },
+    "answers": {
+      "cancellation": {
+        "type": "noul",
+        "noul": 0.0131,
+        "confidence": 0.9869,
+        "answer_confidence": 0.9869,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "choice-2",
+    "state": "Cancel my subscription now.",
+    "questions": {
+      "department": {
+        "type": "choice",
+        "instructions": "Which department should handle this?",
+        "criteria": {
+          "billing": "payments and refunds",
+          "technical": "bugs and crashes",
+          "other": "everything else"
+        }
+      }
+    },
+    "answers": {
+      "department": {
+        "type": "choice",
+        "choice": "billing",
+        "probabilities": {
+          "billing": 0.9932,
+          "technical": 0.0034,
+          "other": 0.0034
+        },
+        "confidence": 0.9584,
+        "answer_confidence": 0.9932,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "score-2",
+    "state": "Cancel my subscription now.",
+    "questions": {
+      "urgency": {
+        "type": "score",
+        "instructions": "How urgent is this?",
+        "criteria": [
+          "low",
+          "medium",
+          "high"
+        ]
+      }
+    },
+    "answers": {
+      "urgency": {
+        "type": "score",
+        "score": 1.0513,
+        "legend": {
+          "0": "low",
+          "1": "medium",
+          "2": "high"
+        },
+        "probabilities": {
+          "0": 0.1131,
+          "1": 0.7225,
+          "2": 0.1644
+        },
+        "confidence": 0.2916,
+        "answer_confidence": 0.7225,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "noul-2",
+    "state": "Cancel my subscription now.",
+    "questions": {
+      "cancellation": {
+        "type": "noul",
+        "instructions": "Does the user want to cancel?"
+      }
+    },
+    "answers": {
+      "cancellation": {
+        "type": "noul",
+        "noul": 0.9947,
+        "confidence": 0.9947,
+        "answer_confidence": 0.9947,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "choice-3",
+    "state": "Production database is unavailable.",
+    "questions": {
+      "department": {
+        "type": "choice",
+        "instructions": "Which department should handle this?",
+        "criteria": {
+          "billing": "payments and refunds",
+          "technical": "bugs and crashes",
+          "other": "everything else"
+        }
+      }
+    },
+    "answers": {
+      "department": {
+        "type": "choice",
+        "choice": "technical",
+        "probabilities": {
+          "billing": 0.0079,
+          "technical": 0.937,
+          "other": 0.0551
+        },
+        "confidence": 0.7642,
+        "answer_confidence": 0.937,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "score-3",
+    "state": "Production database is unavailable.",
+    "questions": {
+      "urgency": {
+        "type": "score",
+        "instructions": "How urgent is this?",
+        "criteria": [
+          "low",
+          "medium",
+          "high"
+        ]
+      }
+    },
+    "answers": {
+      "urgency": {
+        "type": "score",
+        "score": 1.2825,
+        "legend": {
+          "0": "low",
+          "1": "medium",
+          "2": "high"
+        },
+        "probabilities": {
+          "0": 0.0493,
+          "1": 0.6188,
+          "2": 0.3318
+        },
+        "confidence": 0.2613,
+        "answer_confidence": 0.6188,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "noul-3",
+    "state": "Production database is unavailable.",
+    "questions": {
+      "cancellation": {
+        "type": "noul",
+        "instructions": "Does the user want to cancel?"
+      }
+    },
+    "answers": {
+      "cancellation": {
+        "type": "noul",
+        "noul": 0.0052,
+        "confidence": 0.9948,
+        "answer_confidence": 0.9948,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "choice-4",
+    "state": "La aplicación se cierra al abrir configuración.",
+    "questions": {
+      "department": {
+        "type": "choice",
+        "instructions": "Which department should handle this?",
+        "criteria": {
+          "billing": "payments and refunds",
+          "technical": "bugs and crashes",
+          "other": "everything else"
+        }
+      }
+    },
+    "answers": {
+      "department": {
+        "type": "choice",
+        "choice": "technical",
+        "probabilities": {
+          "billing": 0.0056,
+          "technical": 0.9751,
+          "other": 0.0193
+        },
+        "confidence": 0.8818,
+        "answer_confidence": 0.9751,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "score-4",
+    "state": "La aplicación se cierra al abrir configuración.",
+    "questions": {
+      "urgency": {
+        "type": "score",
+        "instructions": "How urgent is this?",
+        "criteria": [
+          "low",
+          "medium",
+          "high"
+        ]
+      }
+    },
+    "answers": {
+      "urgency": {
+        "type": "score",
+        "score": 1.1204,
+        "legend": {
+          "0": "low",
+          "1": "medium",
+          "2": "high"
+        },
+        "probabilities": {
+          "0": 0.0688,
+          "1": 0.742,
+          "2": 0.1892
+        },
+        "confidence": 0.3442,
+        "answer_confidence": 0.742,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "noul-4",
+    "state": "La aplicación se cierra al abrir configuración.",
+    "questions": {
+      "cancellation": {
+        "type": "noul",
+        "instructions": "Does the user want to cancel?"
+      }
+    },
+    "answers": {
+      "cancellation": {
+        "type": "noul",
+        "noul": 0.6069,
+        "confidence": 0.6069,
+        "answer_confidence": 0.6069,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "choice-5",
+    "state": "Veuillez annuler mon abonnement immédiatement.",
+    "questions": {
+      "department": {
+        "type": "choice",
+        "instructions": "Which department should handle this?",
+        "criteria": {
+          "billing": "payments and refunds",
+          "technical": "bugs and crashes",
+          "other": "everything else"
+        }
+      }
+    },
+    "answers": {
+      "department": {
+        "type": "choice",
+        "choice": "billing",
+        "probabilities": {
+          "billing": 0.9974,
+          "technical": 0.002,
+          "other": 0.0006
+        },
+        "confidence": 0.9823,
+        "answer_confidence": 0.9974,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "score-5",
+    "state": "Veuillez annuler mon abonnement immédiatement.",
+    "questions": {
+      "urgency": {
+        "type": "score",
+        "instructions": "How urgent is this?",
+        "criteria": [
+          "low",
+          "medium",
+          "high"
+        ]
+      }
+    },
+    "answers": {
+      "urgency": {
+        "type": "score",
+        "score": 0.9932,
+        "legend": {
+          "0": "low",
+          "1": "medium",
+          "2": "high"
+        },
+        "probabilities": {
+          "0": 0.217,
+          "1": 0.5727,
+          "2": 0.2103
+        },
+        "confidence": 0.1092,
+        "answer_confidence": 0.5727,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "noul-5",
+    "state": "Veuillez annuler mon abonnement immédiatement.",
+    "questions": {
+      "cancellation": {
+        "type": "noul",
+        "instructions": "Does the user want to cancel?"
+      }
+    },
+    "answers": {
+      "cancellation": {
+        "type": "noul",
+        "noul": 0.996,
+        "confidence": 0.996,
+        "answer_confidence": 0.996,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "choice-6",
+    "state": "कृपया मेरा खाता रद्द करें।",
+    "questions": {
+      "department": {
+        "type": "choice",
+        "instructions": "Which department should handle this?",
+        "criteria": {
+          "billing": "payments and refunds",
+          "technical": "bugs and crashes",
+          "other": "everything else"
+        }
+      }
+    },
+    "answers": {
+      "department": {
+        "type": "choice",
+        "choice": "billing",
+        "probabilities": {
+          "billing": 0.9722,
+          "technical": 0.0238,
+          "other": 0.004
+        },
+        "confidence": 0.8739,
+        "answer_confidence": 0.9722,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "score-6",
+    "state": "कृपया मेरा खाता रद्द करें।",
+    "questions": {
+      "urgency": {
+        "type": "score",
+        "instructions": "How urgent is this?",
+        "criteria": [
+          "low",
+          "medium",
+          "high"
+        ]
+      }
+    },
+    "answers": {
+      "urgency": {
+        "type": "score",
+        "score": 0.815,
+        "legend": {
+          "0": "low",
+          "1": "medium",
+          "2": "high"
+        },
+        "probabilities": {
+          "0": 0.2729,
+          "1": 0.6392,
+          "2": 0.0879
+        },
+        "confidence": 0.2225,
+        "answer_confidence": 0.6392,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "noul-6",
+    "state": "कृपया मेरा खाता रद्द करें।",
+    "questions": {
+      "cancellation": {
+        "type": "noul",
+        "instructions": "Does the user want to cancel?"
+      }
+    },
+    "answers": {
+      "cancellation": {
+        "type": "noul",
+        "noul": 0.9829,
+        "confidence": 0.9829,
+        "answer_confidence": 0.9829,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "multiple-questions",
+    "state": "The application crashes whenever I open settings.",
+    "questions": {
+      "team": {
+        "type": "choice",
+        "instructions": "Which team?",
+        "criteria": {
+          "billing": "",
+          "technical": ""
+        }
+      },
+      "severity": {
+        "type": "score",
+        "instructions": "Severity?",
+        "criteria": [
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ]
+      },
+      "crash": {
+        "type": "noul",
+        "instructions": "Did the app crash?"
+      }
+    },
+    "answers": {
+      "team": {
+        "type": "choice",
+        "choice": "technical",
+        "probabilities": {
+          "billing": 0.07,
+          "technical": 0.93
+        },
+        "confidence": 0.634,
+        "answer_confidence": 0.93,
+        "action": {
+          "act_probability": 1.0
+        }
+      },
+      "severity": {
+        "type": "score",
+        "score": 2.0406,
+        "legend": {
+          "0": "low",
+          "1": "medium",
+          "2": "high",
+          "3": "critical"
+        },
+        "probabilities": {
+          "0": 0.0176,
+          "1": 0.2974,
+          "2": 0.3117,
+          "3": 0.3733
+        },
+        "confidence": 0.161,
+        "answer_confidence": 0.3733,
+        "action": {
+          "act_probability": 1.0
+        }
+      },
+      "crash": {
+        "type": "noul",
+        "noul": 0.9942,
+        "confidence": 0.9942,
+        "answer_confidence": 0.9942,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  },
+  {
+    "id": "six-options",
+    "state": "Production database is unavailable.",
+    "questions": {
+      "kind": {
+        "type": "choice",
+        "instructions": "Classify",
+        "criteria": {
+          "outage": "",
+          "billing": "",
+          "security": "",
+          "feature": "",
+          "support": "",
+          "other": ""
+        }
+      }
+    },
+    "answers": {
+      "kind": {
+        "type": "choice",
+        "choice": "outage",
+        "probabilities": {
+          "outage": 0.9837,
+          "billing": 0.0004,
+          "security": 0.0095,
+          "feature": 0.0016,
+          "support": 0.0015,
+          "other": 0.0034
+        },
+        "confidence": 0.9427,
+        "answer_confidence": 0.9837,
+        "action": {
+          "act_probability": 1.0
+        }
+      }
+    }
+  }
+]
