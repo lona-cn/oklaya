@@ -44,7 +44,7 @@ cargo build --workspace --release
 
 ## GitHub 发布
 
-推送 `v0.1.0` 之类的版本标签会触发 [Windows x64 发布工作流](.github/workflows/release.yml)：构建并测试所有 crate、按固定哈希校验独立发布的多语言模型、运行模型差分测试，再将四个可执行文件及本项目的许可与声明打包为 ZIP，发布到 GitHub Release。手动运行 `workflow_dispatch` 也会执行相同检查并上传临时构建产物，但不发布版本 Release。
+推送 `v0.1.0` 之类的版本标签会触发 [Windows x64 发布工作流](.github/workflows/release.yml)：构建并测试所有 crate、按固定哈希校验独立发布的多语言模型、运行模型差分测试，再将四个可执行文件、本项目及依赖的许可声明打包为 ZIP，发布到 GitHub Release。手动运行 `workflow_dispatch` 也会执行相同检查并上传临时构建产物，但不发布版本 Release。
 
 大模型文件**不进入 Git**。[固定版本的模型 Release](https://github.com/lona-cn/oklaya/releases/tag/models-1bc2622) 分别提供 `laya-model-{english,multilingual,typed-decisions}.zip`，每个压缩包包含模型目录以及 Apache 许可和归属声明。使用前应校验 SHA256。仅解压应用程序 ZIP 不会自动安装这些模型：默认情况下，`laya` 会把选中的模型下载并校验到用户缓存；推理库调用者也可以通过 `Laya::builder().model_path(...)` 指定已解压目录。应用发行包可用于 CPU；CUDA 需另行安装供应商组件。可选的微软 ONNX Runtime GPU 原版 wheel 连同自带许可和第三方声明上传；NVIDIA cuBLAS SDK 压缩包的分发条款限制单独转载，因此**不会**镜像发布，获取方式见 [Windows CUDA 指南](docs/windows-cuda.md)。
 

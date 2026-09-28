@@ -63,6 +63,9 @@ jobs:
           cargo test -p laya-inference --test reference --locked
           if ($LASTEXITCODE -ne 0) { throw 'Released model parity test failed' }
 
+      - name: Collect third-party dependency notices
+        run: python scripts/collect-licenses.py dist/THIRD_PARTY_NOTICES.txt
+
       - name: Package Windows applications
         run: |
           $directory = 'dist/oklaya-windows-x64'
@@ -70,7 +73,7 @@ jobs:
           foreach ($name in @('laya', 'laya-inspect', 'laya-gui-server', 'laya-gui-client')) {
             Copy-Item "target/release/$name.exe" $directory
           }
-          Copy-Item README.md, README.zh-CN.md, LICENSE, NOTICE $directory
+          Copy-Item README.md, README.zh-CN.md, LICENSE, NOTICE, dist/THIRD_PARTY_NOTICES.txt $directory
           $archive = "oklaya-$env:GITHUB_REF_NAME-windows-x64.zip"
           Compress-Archive -Path "$directory/*" -DestinationPath "dist/$archive" -CompressionLevel Optimal
           $hash = (Get-FileHash "dist/$archive" -Algorithm SHA256).Hash.ToLowerInvariant()
